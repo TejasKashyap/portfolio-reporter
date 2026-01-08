@@ -121,6 +121,11 @@ def generate_email_content(analysis):
 def send_report(analysis, sender_email, email_password, recipient_email):
     """Send portfolio report via email"""
     try:
+        # Validate credentials
+        if not sender_email or not email_password:
+            logger.error("Email credentials not configured")
+            raise ValueError("Email credentials not configured")
+
         html_content = generate_email_content(analysis)
 
         msg = MIMEMultipart('alternative')
@@ -131,13 +136,20 @@ def send_report(analysis, sender_email, email_password, recipient_email):
         html_part = MIMEText(html_content, 'html')
         msg.attach(html_part)
 
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+        # Add timeout to prevent hanging
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=30) as server:
             server.login(sender_email, email_password)
             server.send_message(msg)
 
         logger.info(f"Email report sent successfully to {recipient_email}")
         return True
 
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error(f"Gmail authentication failed: {e}")
+        raise ValueError("Gmail authentication failed. Check EMAIL_PASSWORD (use App Password)")
+    except smtplib.SMTPException as e:
+        logger.error(f"SMTP error: {e}")
+        raise ValueError(f"Email error: {str(e)}")
     except Exception as e:
         logger.error(f"Error sending email: {e}")
-        return False
+        raise

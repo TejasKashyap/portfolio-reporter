@@ -12,6 +12,17 @@ api_bp = Blueprint('api', __name__)
 def send_email():
     """Send portfolio report via email"""
     try:
+        # Check email config first
+        sender_email = current_app.config.get('SENDER_EMAIL')
+        email_password = current_app.config.get('EMAIL_PASSWORD')
+        recipient_email = current_app.config.get('RECIPIENT_EMAIL')
+
+        if not sender_email or not email_password or not recipient_email:
+            return jsonify({
+                'status': 'error',
+                'message': 'Email not configured. Check SENDER_EMAIL, EMAIL_PASSWORD, RECIPIENT_EMAIL in Railway variables.'
+            }), 500
+
         access_token = session.get('access_token')
         api_key = current_app.config['KITE_API_KEY']
 
@@ -26,12 +37,7 @@ def send_email():
 
         analysis = portfolio_service.analyze(holdings)
 
-        success = send_report(
-            analysis,
-            current_app.config['SENDER_EMAIL'],
-            current_app.config['EMAIL_PASSWORD'],
-            current_app.config['RECIPIENT_EMAIL']
-        )
+        success = send_report(analysis, sender_email, email_password, recipient_email)
 
         if success:
             return jsonify({
@@ -44,10 +50,15 @@ def send_email():
                 'message': 'Failed to send email'
             }), 500
 
-    except Exception as e:
+    except ValueError as e:
         return jsonify({
             'status': 'error',
             'message': str(e)
+        }), 400
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error: {str(e)}'
         }), 500
 
 
