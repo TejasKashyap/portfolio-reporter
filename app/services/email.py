@@ -136,8 +136,9 @@ def send_report(analysis, sender_email, email_password, recipient_email):
         html_part = MIMEText(html_content, 'html')
         msg.attach(html_part)
 
-        # Add timeout to prevent hanging
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=30) as server:
+        # Use port 587 with STARTTLS (more compatible with cloud hosts)
+        with smtplib.SMTP('smtp.gmail.com', 587, timeout=30) as server:
+            server.starttls()
             server.login(sender_email, email_password)
             server.send_message(msg)
 
