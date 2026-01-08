@@ -6,3 +6,7 @@ matplotlib==3.7.2
 seaborn==0.12.2
 email-validator==2.0.0
 kiteconnect==5.0.1
+
+# Flask web app
+Flask==3.0.0
+gunicorn==21.2.0

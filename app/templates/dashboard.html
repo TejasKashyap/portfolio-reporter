@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Portfolio Reporter{% endblock %}
+
+{% block content %}
+{% if analysis %}
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Total Value</h6>
+                <h4 class="card-title">{{ "{:,.2f}".format(analysis.total_value) }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Total P&L</h6>
+                <h4 class="card-title {{ 'positive' if analysis.total_pnl >= 0 else 'negative' }}">
+                    {{ "{:,.2f}".format(analysis.total_pnl) }}
+                    ({{ "{:+.2f}".format(analysis.total_pnl_percentage) }}%)
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Holdings</h6>
+                <h4 class="card-title">{{ analysis.holdings_count }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Sectors</h6>
+                <h4 class="card-title">{{ analysis.sectors|length }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="mb-4">
+    <button id="sendEmailBtn" class="btn btn-primary">Send Email Report</button>
+    <button id="refreshBtn" class="btn btn-outline-secondary ms-2">Refresh Data</button>
+</div>
+
+<!-- Charts -->
+<div class="row">
+    {% if charts.sector_pie %}
+    <div class="col-md-6">
+        <div class="chart-container">
+            <img src="data:image/png;base64,{{ charts.sector_pie }}" alt="Sector Allocation">
+        </div>
+    </div>
+    {% endif %}
+
+    {% if charts.gainers %}
+    <div class="col-md-6">
+        <div class="chart-container">
+            <img src="data:image/png;base64,{{ charts.gainers }}" alt="Top Gainers">
+        </div>
+    </div>
+    {% endif %}
+
+    {% if charts.losers %}
+    <div class="col-md-6">
+        <div class="chart-container">
+            <img src="data:image/png;base64,{{ charts.losers }}" alt="Top Losers">
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Top Gainers Table -->
+{% if analysis.top_gainers %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Top Gainers</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>P&L</th>
+                    <th>P&L %</th>
+                    <th>Current Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gainer in analysis.top_gainers[:5] %}
+                <tr>
+                    <td>{{ gainer.symbol }}</td>
+                    <td class="positive">{{ "{:,.2f}".format(gainer.pnl) }}</td>
+                    <td class="positive">+{{ "{:.2f}".format(gainer.pnl_percentage) }}%</td>
+                    <td>{{ "{:,.2f}".format(gainer.current_value) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Top Losers Table -->
+{% if analysis.top_losers %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Top Losers</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>P&L</th>
+                    <th>P&L %</th>
+                    <th>Current Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loser in analysis.top_losers[:5] %}
+                <tr>
+                    <td>{{ loser.symbol }}</td>
+                    <td class="negative">{{ "{:,.2f}".format(loser.pnl) }}</td>
+                    <td class="negative">{{ "{:.2f}".format(loser.pnl_percentage) }}%</td>
+                    <td>{{ "{:,.2f}".format(loser.current_value) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Sector Analysis Table -->
+{% if analysis.sectors %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Sector Analysis</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Sector</th>
+                    <th>Value</th>
+                    <th>P&L</th>
+                    <th>Holdings</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sector, data in analysis.sectors.items() %}
+                <tr>
+                    <td>{{ sector }}</td>
+                    <td>{{ "{:,.2f}".format(data.value) }}</td>
+                    <td class="{{ 'positive' if data.pnl >= 0 else 'negative' }}">
+                        {{ "{:,.2f}".format(data.pnl) }}
+                    </td>
+                    <td>{{ data.count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info">
+    <h4>No Portfolio Data</h4>
+    <p>Unable to load portfolio data. Please try refreshing or re-authenticate with Kite.</p>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-primary">Re-authenticate</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('sendEmailBtn')?.addEventListener('click', async function() {
+    this.disabled = true;
+    this.textContent = 'Sending...';
+
+    try {
+        const response = await fetch('/api/send-email', { method: 'POST' });
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            alert('Email sent successfully!');
+        } else {
+            alert('Failed to send email: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    } finally {
+        this.disabled = false;
+        this.textContent = 'Send Email Report';
+    }
+});
+
+document.getElementById('refreshBtn')?.addEventListener('click', function() {
+    window.location.reload();
+});
+</script>
+{% endblock %}
