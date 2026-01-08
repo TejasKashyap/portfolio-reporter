@@ -1,10 +1,8 @@
 """Email service - sends portfolio reports via email"""
 import os
-import smtplib
 import logging
 from datetime import datetime
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import resend
 
 logger = logging.getLogger(__name__)
 
@@ -118,39 +116,28 @@ def generate_email_content(analysis):
     return html_content
 
 
-def send_report(analysis, sender_email, email_password, recipient_email):
-    """Send portfolio report via email"""
+def send_report(analysis, sender_email, resend_api_key, recipient_email):
+    """Send portfolio report via email using Resend API"""
     try:
         # Validate credentials
-        if not sender_email or not email_password:
-            logger.error("Email credentials not configured")
-            raise ValueError("Email credentials not configured")
+        if not resend_api_key:
+            logger.error("Resend API key not configured")
+            raise ValueError("RESEND_API_KEY not configured in Railway variables")
 
+        resend.api_key = resend_api_key
         html_content = generate_email_content(analysis)
 
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f'Portfolio Analysis Report - {datetime.now().strftime("%Y-%m-%d")}'
-        msg['From'] = sender_email
-        msg['To'] = recipient_email
+        params = {
+            "from": "Portfolio Reporter <onboarding@resend.dev>",
+            "to": [recipient_email],
+            "subject": f"Portfolio Analysis Report - {datetime.now().strftime('%Y-%m-%d')}",
+            "html": html_content
+        }
 
-        html_part = MIMEText(html_content, 'html')
-        msg.attach(html_part)
-
-        # Use port 587 with STARTTLS (more compatible with cloud hosts)
-        with smtplib.SMTP('smtp.gmail.com', 587, timeout=30) as server:
-            server.starttls()
-            server.login(sender_email, email_password)
-            server.send_message(msg)
-
-        logger.info(f"Email report sent successfully to {recipient_email}")
+        email = resend.Emails.send(params)
+        logger.info(f"Email report sent successfully to {recipient_email}, id: {email['id']}")
         return True
 
-    except smtplib.SMTPAuthenticationError as e:
-        logger.error(f"Gmail authentication failed: {e}")
-        raise ValueError("Gmail authentication failed. Check EMAIL_PASSWORD (use App Password)")
-    except smtplib.SMTPException as e:
-        logger.error(f"SMTP error: {e}")
-        raise ValueError(f"Email error: {str(e)}")
     except Exception as e:
         logger.error(f"Error sending email: {e}")
-        raise
+        raise ValueError(f"Email error: {str(e)}")

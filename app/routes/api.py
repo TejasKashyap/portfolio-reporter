@@ -13,14 +13,13 @@ def send_email():
     """Send portfolio report via email"""
     try:
         # Check email config first
-        sender_email = current_app.config.get('SENDER_EMAIL')
-        email_password = current_app.config.get('EMAIL_PASSWORD')
+        resend_api_key = current_app.config.get('RESEND_API_KEY')
         recipient_email = current_app.config.get('RECIPIENT_EMAIL')
 
-        if not sender_email or not email_password or not recipient_email:
+        if not resend_api_key or not recipient_email:
             return jsonify({
                 'status': 'error',
-                'message': 'Email not configured. Check SENDER_EMAIL, EMAIL_PASSWORD, RECIPIENT_EMAIL in Railway variables.'
+                'message': 'Email not configured. Add RESEND_API_KEY and RECIPIENT_EMAIL in Railway variables.'
             }), 500
 
         access_token = session.get('access_token')
@@ -37,7 +36,7 @@ def send_email():
 
         analysis = portfolio_service.analyze(holdings)
 
-        success = send_report(analysis, sender_email, email_password, recipient_email)
+        success = send_report(analysis, None, resend_api_key, recipient_email)
 
         if success:
             return jsonify({

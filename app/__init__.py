@@ -13,8 +13,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-change-in-production')
     app.config['KITE_API_KEY'] = os.environ.get('KITE_API_KEY')
     app.config['KITE_API_SECRET'] = os.environ.get('KITE_API_SECRET')
-    app.config['SENDER_EMAIL'] = os.environ.get('SENDER_EMAIL')
-    app.config['EMAIL_PASSWORD'] = os.environ.get('EMAIL_PASSWORD')
+    app.config['RESEND_API_KEY'] = os.environ.get('RESEND_API_KEY')
     app.config['RECIPIENT_EMAIL'] = os.environ.get('RECIPIENT_EMAIL')
 
     # Register blueprints
