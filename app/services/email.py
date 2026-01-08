@@ -128,7 +128,7 @@ def send_report(analysis, sender_email, resend_api_key, recipient_email):
         html_content = generate_email_content(analysis)
 
         params = {
-            "from": "Portfolio Reporter <onboarding@resend.dev>",
+            "from": "Portfolio Reporter <portfolio@tejaskashyap.com>",
             "to": [recipient_email],
             "subject": f"Portfolio Analysis Report - {datetime.now().strftime('%Y-%m-%d')}",
             "html": html_content
