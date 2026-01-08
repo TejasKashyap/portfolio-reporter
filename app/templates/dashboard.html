@@ -43,10 +43,30 @@
     </div>
 </div>
 
-<!-- Action Buttons -->
-<div class="mb-4">
-    <button id="sendEmailBtn" class="btn btn-primary">Send Email Report</button>
-    <button id="refreshBtn" class="btn btn-outline-secondary ms-2">Refresh Data</button>
+<!-- Action Buttons and Schedule Status -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <button id="sendEmailBtn" class="btn btn-primary">Send Email Report</button>
+        <button id="refreshBtn" class="btn btn-outline-secondary ms-2">Refresh Data</button>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body py-2">
+                <div class="d-flex align-items-center">
+                    <span class="badge {{ 'bg-success' if schedule.enabled else 'bg-secondary' }} me-2">
+                        {{ 'Scheduled' if schedule.enabled else 'Off' }}
+                    </span>
+                    <small class="text-muted">
+                        {% if schedule.enabled %}
+                        Next report: {{ schedule.next_run }}
+                        {% else %}
+                        Daily reports not configured
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Charts -->
