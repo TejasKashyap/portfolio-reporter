@@ -15,6 +15,8 @@ def create_app():
     app.config['KITE_API_SECRET'] = os.environ.get('KITE_API_SECRET')
     app.config['RESEND_API_KEY'] = os.environ.get('RESEND_API_KEY')
     app.config['RECIPIENT_EMAIL'] = os.environ.get('RECIPIENT_EMAIL')
+    app.config['REPORT_HOUR'] = os.environ.get('REPORT_HOUR', '9')
+    app.config['REPORT_MINUTE'] = os.environ.get('REPORT_MINUTE', '0')
 
     # Register blueprints
     from app.routes.auth import auth_bp
@@ -24,5 +26,9 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
+
+    # Initialize scheduler for daily reports
+    from app.services.scheduler import init_scheduler
+    init_scheduler(app)
 
     return app

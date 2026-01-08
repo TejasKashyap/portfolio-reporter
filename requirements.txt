@@ -11,3 +11,4 @@ kiteconnect==5.0.1
 Flask==3.0.0
 gunicorn==21.2.0
 resend==2.0.0
+APScheduler==3.10.4
